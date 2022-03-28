@@ -1,4 +1,5 @@
 from flask import Flask, Blueprint
+import os
 from models import db
 from api import api
 from views.user import user
@@ -18,7 +19,7 @@ def create_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///blog.db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-    app.config['SECRET_KEY'] = '9a29b63856e26fe7182b4efa182b5e40'
+    app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")
 
     db.init_app(app)
 
