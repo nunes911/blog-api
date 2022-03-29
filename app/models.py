@@ -9,6 +9,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(255), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
+    token = db.Column(db.String(255))
     created_at = db.Column(db.DateTime(), default=datetime.utcnow)
 
 

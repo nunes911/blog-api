@@ -4,6 +4,7 @@ bcrypt==3.2.0
 cffi==1.15.0
 click==8.0.4
 Flask==2.0.3
+Flask-JWT==0.3.2
 flask-restx==0.5.1
 Flask-SQLAlchemy==2.5.1
 greenlet==1.1.2
@@ -13,7 +14,7 @@ Jinja2==3.1.1
 jsonschema==4.4.0
 MarkupSafe==2.1.1
 pycparser==2.21
-PyJWT==2.3.0
+PyJWT==1.4.2
 pyrsistent==0.18.1
 python-dotenv==0.20.0
 pytz==2022.1

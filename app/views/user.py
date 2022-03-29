@@ -1,38 +1,16 @@
 from flask import request, current_app
-from functools import wraps
 import bcrypt
+import jwt
 import datetime
 from flask_restx import Resource, fields
-import jwt
 from api import api
 from models import db, User
+
 
 user = api.namespace('user', description='')
 
 
-def token_required(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-
-        token = None
-        if 'X-API-KEY' in request.headers:
-            token = request.headers['X-API-KEY']
-
-        if not token:
-            return {"erro": "Um token valido precisa ser informado no header"}, 401
-
-        try:
-            data = jwt.decode(token, current_app.config['SECRET_KEY'])
-            current_user = User.query.filter_by(token=token).first()
-        except:
-            return {'erro': 'Token invalido'}, 403
-
-        return f(current_user, *args, **kwargs)
-
-    return decorated
-
-
-@user.route('/user/create')
+@user.route('/create')
 class NewUser(Resource):
     new_user = user.model(
         "model_new_user",
@@ -71,7 +49,7 @@ class NewUser(Resource):
         return f"User {username} has been created successfully", 200
 
 
-@user.route('/user/login')
+@user.route('/login')
 class LoginUser(Resource):
     login = user.model(
         "model_login",
@@ -102,10 +80,13 @@ class LoginUser(Resource):
             return f"Username not found.", 404
 
         if bcrypt.checkpw(password.encode('utf-8'), user.password):
-            token = jwt.encode({'user': username,
-                                'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=2)},
+            token = jwt.encode({'username': username,
+                                'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=10)},
                                current_app.config['SECRET_KEY'])
 
-            return {'token': token}, 200
+            user.token = token
+            db.session.commit()
+
+            return {'token': token.decode('UTF-8')}, 200
         else:
             return "Wrong Password", 404
