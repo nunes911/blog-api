@@ -22,9 +22,9 @@ class NewUser(Resource):
 
     @user.expect(new_user)
     def post(self):
-        '''
+        """
         Criar um novo usuário para o sistema
-        '''
+        """
 
         resp = request.json
         username = resp['username']
@@ -61,9 +61,9 @@ class LoginUser(Resource):
 
     @user.expect(login)
     def post(self):
-        '''
+        """
         Endpoint de Login que recebe usuário e senha anteriormente cadastrados e retorna um token.
-        '''
+        """
 
         resp = request.json
         username = resp['username']
@@ -74,17 +74,17 @@ class LoginUser(Resource):
         if not password:
             return "Missing password", 400
 
-        user = User.query.filter_by(username=username).first()
+        u = User.query.filter_by(username=username).first()
 
-        if not user:
+        if not u:
             return f"Username not found.", 404
 
-        if bcrypt.checkpw(password.encode('utf-8'), user.password):
+        if bcrypt.checkpw(password.encode('utf-8'), u.password):
             token = jwt.encode({'username': username,
-                                'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=10)},
+                                'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)},
                                current_app.config['SECRET_KEY'])
 
-            user.token = token
+            u.token = token
             db.session.commit()
 
             return {'token': token.decode('UTF-8')}, 200

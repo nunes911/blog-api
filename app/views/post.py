@@ -19,17 +19,43 @@ def token_required(f):
             token = request.headers['X-API-KEY']
 
         if not token:
-            return {"erro": "Um token valido precisa ser informado no header"}, 401
+            return {"erro": "A valid token must be informed in the header."}, 401
 
         try:
             data = jwt.decode(token, current_app.config['SECRET_KEY'])
             current_user = User.query.filter_by(username=data['username']).first()
         except:
-            return {'erro': 'Token invalido'}, 403
+            return {'erro': 'Invalid token.'}, 403
 
         return f(current_user, *args, **kwargs)
 
     return decorated
+
+
+@post.route('/list')
+class PostList(Resource):
+    @post.doc(security='apikey')
+    @token_required
+    def get(self, current_user):
+        """
+        Retorna a lista de publicações criadas.
+        """
+        all_post = Post.query.all()
+        post_list = []
+
+        try:
+            for post in all_post:
+                u = User.query.filter_by(id=post.user_id).first()
+                post_list.append({'id': post.id,
+                                  'user': u.username,
+                                  'title': post.title,
+                                  'body': post.body,
+                                  'created_at': post.created_at.isoformat()})
+
+            return post_list, 200
+
+        except Exception as e:
+            return f"Erro: {e}", 400
 
 
 @post.route('/create')
@@ -46,9 +72,9 @@ class CreatePost(Resource):
     @token_required
     @post.expect(new_post)
     def post(self, current_user):
-        '''
+        """
         Cria uma nova publicação
-        '''
+        """
 
         resp = request.json
         title = resp['title']
@@ -70,3 +96,22 @@ class CreatePost(Resource):
             return f"Error: {e}", 401
 
 
+@post.route('/delete/<id>')
+class DeletePost(Resource):
+    @post.doc(security='apikey')
+    @token_required
+    def delete(self, current_user, id):
+        """
+        Deleta a postagem se o usuário for o criador da mesma.
+        """
+        post = Post.query.filter_by(id=id).first()
+
+        if not post:
+            return "This post doesn't exist.", 404
+        elif post.user_id != self.id:
+            return "User doesn't have permission to delete this post.", 400
+        else:
+            db.session.delete(post)
+            db.session.commit()
+
+            return f"Post {id} deleted successfully.", 200
