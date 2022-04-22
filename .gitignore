@@ -4,6 +4,12 @@
 # Enviroment Variables
 .env
 
+# pytest cache
+.pytest
+
+#pycache
+__pycache__
+
 # User-specific stuff:
 .idea/workspace.xml
 .idea/tasks.xml
